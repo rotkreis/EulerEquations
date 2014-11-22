@@ -10,8 +10,9 @@
 #include "Matrix.h"
 int main(int argc, const char * argv[]) {
     // insert code here...
-    Matrix<double> heihei(3,3);
-    
+    Matrix<double> hei(3,3);
+    hei(2,1) = (double)1;
+    std::cout << hei;
     std::cout << "Hello, World!\n";
     return 0;
 }
