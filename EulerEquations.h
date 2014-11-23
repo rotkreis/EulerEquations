@@ -14,13 +14,6 @@
 #include "Matrix.h"
 typedef double (*pFunc)(double x);
 
-//mVector Flux(mVector& u, double gamma){
-//    mVector temp(3);
-//    temp[0] = u[1];
-//    temp[1] = 0.5 * (3 - gamma);
-//    return temp;
-//}
-
 class Cell : public mVector{
 public:
     Cell():
@@ -54,7 +47,7 @@ public:
         return data[index - 1][1];
     }
     double& u3(int index){
-        return data[index - 1][1];
+        return data[index - 1][2];
     }
 };
 
@@ -124,6 +117,7 @@ public:
                     sum += 0.5 * ivDensity(x1 + i * h) * pow(ivVelocity(x1 + i * h), 2)
                     + ivPressure(x1 + i * h) / (gamma - 1);
                 }
+                break;
             default:
                 break;
         }
@@ -150,6 +144,15 @@ public:
         for (int i = 1; i <= nCells; i++) {
             std::cout << values[i] << endl;
         }
+    }
+    double GetDensity(Profiles& profile, int index){
+        return profile.u1(index);
+    }
+    double GetVelocity(Profiles& profile, int index) {
+        return profile.u2(index) / profile.u1(index);
+    }
+    double GetPressure(Profiles& profile, int index){
+        return (gamma - 1) * (profile.u3(index) - 0.5 * pow(profile.u2(index),2) / profile.u1(index));
     }
     // Computations
 public:
@@ -180,9 +183,9 @@ public:
     double LFComputeTimeStep(Profiles& profile, double atTime){
         double tMin = 0.1;
         for (int i = 1 ; i != nCells; i++) {
-            double rho = profile.u1(i);
-            double u = profile.u2(i) / profile.u1(i);
-            double p = (gamma - 1) * (profile.u3(i) - 0.5 * pow(profile.u2(i),2) / profile.u1(i));
+            double rho = GetDensity(profile, i);
+            double u = GetVelocity(profile, i);
+            double p = GetPressure(profile, i);
             double a = sqrt(gamma * p / rho);
             double t1 = CFL * xStep / std::abs(u);
             double t2 = CFL * xStep / std::abs(u + a);
@@ -213,6 +216,9 @@ public:
             double dt = LFComputeTimeStep(uPre, tNow);
             LFComputeForward(uPre, uPost, dt);
             tNow += dt;
+        }
+        for (int i = 1; i <= nCells; i++) {
+            std::cout << uPost.u1(i) <<", ";
         }
         std::cout << "finished!";
     }

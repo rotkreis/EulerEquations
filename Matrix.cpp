@@ -562,7 +562,9 @@ Matrix operator-(const Matrix& m1, const Matrix& m2){
     return sum;
 }
 Matrix operator*(const Matrix& m1, const Matrix& m2){
-    if(m1.GetNumCols() != m2.GetNumRows()) std::cout << "Illegal Multiplication" << std::endl;
+    if(m1.GetNumCols() != m2.GetNumRows()) {
+        std::cout << "Illegal Multiplication" << std::endl;
+    }
     Matrix res(m1.GetNumRows(), m2.GetNumCols());
     for(int i = 0; i != m1.GetNumRows(); ++i)
         for(int j = 0; j != m2.GetNumCols(); ++j)
@@ -577,6 +579,10 @@ Matrix operator*(const Matrix& m1, const TYPE& num){
     res *= num;
     return res;
 }
+Matrix operator*(const TYPE& num, const Matrix& m1){
+    return m1 * num;
+}
+
 Matrix operator/(const Matrix& m1, const TYPE& num){
     Matrix res(m1.GetNumRows(),m1.GetNumCols());
     res = m1;

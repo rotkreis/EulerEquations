@@ -104,6 +104,7 @@ Matrix operator+(const Matrix& m1, const Matrix& m2);
 Matrix operator-(const Matrix& m1, const Matrix& m2);
 Matrix operator*(const Matrix& m1, const Matrix& m2);
 Matrix operator*(const Matrix& m1, const TYPE& num);
+Matrix operator*(const TYPE& num, const Matrix& m1);
 Matrix operator/(const Matrix& m1, const TYPE& num);
 
 

@@ -34,22 +34,13 @@ double u(double x){
 
 int main(int argc, const char * argv[]) {
     EulerSolver sol(rho, p, u);
-    sol.SetCellNumber(11);
-    sol.SetGamma(1.4);
+    sol.SetCellNumber(1000);
+    sol.SetGamma(1.5);
     sol.SetRange(0, 1);
     sol.SetTime(0, 0.25);
-    sol.test();
+//    sol.test();
+    sol.LFSolve();
     
-    std::vector<double> v1(3);
-    v1.push_back(3);
-    for (int i = 0; i <= 3; i++) {
-        std::cout << v1[i];
-    }
-    std::vector<double> v2(4);
-    v2 = v1;
-    for (int i = 0; i <= 3; i++) {
-        std::cout << v2[i];
-    }
     
     
     
