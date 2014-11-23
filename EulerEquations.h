@@ -14,14 +14,33 @@
 #include "Matrix.h"
 typedef double (*pFunc)(double x);
 
+class Cell : public mVector{
+public:
+    Cell(int n):
+    mVector(n){ }
+};
 
 
-class Profiles : public std::vector<mVector>{ // Mathematical Subscripts, index = 1, the first element
+class Profiles{ // Mathematical Subscripts, index = 1, the first element
 public:
-    Profiles(int nCells):
-    std::vector<mVector>(nCells) {}
+    std::vector<mVector> data;
 public:
-    
+    Profiles(int nCells){
+        data = std::vector<mVector>(nCells);
+        for (int i = 0; i != nCells; i++) {
+            data[i] = mVector(3);
+        }
+    }
+public:
+    double& u1(int index){
+        return data[index - 1][0];
+    }
+    double& u2(int index){
+        return data[index - 1][1];
+    }
+    double& u3(int index){
+        return data[index - 1][1];
+    }
 };
 
 
@@ -62,7 +81,7 @@ public:
     void SetCellNumber(int n){
         nCells = n;
     }
-    // Computations
+    // Preparations
 public:
     void ComputeSpatialStep(){
         xStep = (xMax - xMin) / nCells;
@@ -103,8 +122,12 @@ public:
         ComputeSpatialStep();
         Profiles values(nCells);
         InitiateValues(values);
+        for (int i = 1; i <= nCells; i++) {
+            std::cout << values.u1(i) << endl;
+        }
     }
-    
+    // Computations
+public:
     
     
     
