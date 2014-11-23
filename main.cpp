@@ -57,7 +57,10 @@ int main(int argc, const char * argv[]) {
     sol.SetTime(0, 0.25);
 
     Profiles res(nCells);
-    sol.LWSolve(res);
+    sol.HLLSolve(res);
     PrintVelocity(res, nCells);
+    std::cout << std::endl;
+    PrintPressure(res, nCells);
+
     return 0;
 }
