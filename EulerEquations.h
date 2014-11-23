@@ -137,13 +137,16 @@ public:
         temp[2] = gamma * u[1] * u[2] / u[0] - 0.5 * (gamma - 1) * pow(u[1],3) / pow(u[0],2);
         return temp;
     }
-    void test(){
-        ComputeSpatialStep();
-        Profiles values(nCells);
-        InitiateValues(values);
-        for (int i = 1; i <= nCells; i++) {
-            std::cout << values[i] << endl;
-        }
+    mVector ComputeEigenvalues(Profiles& profile, int index){
+        mVector eigenvalues(3);
+        double rho = GetDensity(profile, index);
+        double u = GetVelocity(profile, index);
+        double p = GetPressure(profile, index);
+        double a = sqrt(gamma * p / rho);
+        eigenvalues[0] = u;
+        eigenvalues[1] = u - a;
+        eigenvalues[2] = u + a;
+        return eigenvalues;
     }
     double GetDensity(Profiles& profile, int index){
         return profile.u1(index);
@@ -156,7 +159,34 @@ public:
     }
     // Computations
 public:
-    mVector RightFlux(Profiles& u, int index, double dt){
+    mVector LWRightFlux(Profiles& profile, int index, double dt){
+        mVector temp(3);
+        if (index == nCells) {
+            temp = Flux(profile[index]);
+            return temp;
+        }
+        mVector eigenvalues(3);
+        eigenvalues = ComputeEigenvalues(profile, index);
+        temp = 0.5 * (Flux(profile[index]) + Flux(profile[index + 1])) - 0.5 * dt / xStep * pow(eigenvalues.Norm_2(), 2) *(profile[index + 1] - profile[index]);
+        return temp;
+    }
+    mVector LWLeftFlux(Profiles& profile, int index, double dt){
+        mVector temp(3);
+        if (index == 1) {
+            temp = Flux(profile[index]);
+            return temp;
+        }
+        mVector eigenvalues(3);
+        eigenvalues = ComputeEigenvalues(profile, index);
+        temp = 0.5 * (Flux(profile[index - 1]) + Flux(profile[index])) - 0.5 * dt / xStep * pow(eigenvalues.Norm_2(), 2) *(profile[index] - profile[index - 1]);
+        return temp;
+    }
+    double LWComputeTimeStep(Profiles& profile, double atTime){
+        return LFComputeTimeStep(profile, atTime);
+    }
+    
+    
+    mVector LFRightFlux(Profiles& u, int index, double dt){
         mVector temp(3);
         if (index == nCells) { // Boundary
             temp = Flux(u[index]);
@@ -165,7 +195,7 @@ public:
         temp = 0.5 * (Flux(u[index]) + Flux(u[index + 1])) - (u[index + 1] - u[index]) / (2 * dt / xStep);
         return temp;
     }
-    mVector LeftFlux(Profiles& u, int index, double dt){
+    mVector LFLeftFlux(Profiles& u, int index, double dt){
         mVector temp(3);
         if (index == 1) { // Boundary
             temp = Flux(u[index]);
@@ -177,19 +207,17 @@ public:
     
     void LFComputeForward(Profiles& uPre, Profiles& uPost, double dt){
         for (int i = 1; i <= nCells; i++) {
-            uPost[i] = uPre[i] - dt / xStep * (RightFlux(uPre, i, dt) - LeftFlux(uPre, i, dt));
+            uPost[i] = uPre[i] - dt / xStep * (LFRightFlux(uPre, i, dt) - LFLeftFlux(uPre, i, dt));
         }
     }
     double LFComputeTimeStep(Profiles& profile, double atTime){
         double tMin = 0.1;
-        for (int i = 1 ; i != nCells; i++) {
-            double rho = GetDensity(profile, i);
-            double u = GetVelocity(profile, i);
-            double p = GetPressure(profile, i);
-            double a = sqrt(gamma * p / rho);
-            double t1 = CFL * xStep / std::abs(u);
-            double t2 = CFL * xStep / std::abs(u + a);
-            double t3 = CFL * xStep / std::abs(u - a);
+        for (int i = 1 ; i <= nCells; i++) {
+            mVector eigenvalues(3);
+            eigenvalues = ComputeEigenvalues(profile, i);
+            double t1 = CFL * xStep / std::abs(eigenvalues[0]);
+            double t2 = CFL * xStep / std::abs(eigenvalues[1]);
+            double t3 = CFL * xStep / std::abs(eigenvalues[2]);
             if (t1 < tMin) {
                 tMin = t1;
             }
@@ -205,7 +233,7 @@ public:
         }
         return tMin;
     }
-    void LFSolve(){
+    void LFSolve(Profiles& res){
         ComputeSpatialStep();
         Profiles uPre(nCells);
         Profiles uPost(nCells);
@@ -217,16 +245,16 @@ public:
             LFComputeForward(uPre, uPost, dt);
             tNow += dt;
         }
-        for (int i = 1; i <= nCells; i++) {
-            std::cout << uPost.u1(i) <<", ";
-        }
-        std::cout << "finished!";
+        GetOutput(uPost, res);
+        std::cout << "finished!" <<endl;
     }
-    
-    
-    
-    
-    
+    void GetOutput(Profiles& uPost, Profiles& res){
+        for (int i = 1; i <= nCells; i++) {
+            res.u1(i) = GetDensity(uPost, i);
+            res.u2(i) = GetVelocity(uPost, i);
+            res.u3(i) = GetPressure(uPost, i);
+        }
+    }
 };
 
 #endif /* defined(__EulerEquations__EulerEquations__) */

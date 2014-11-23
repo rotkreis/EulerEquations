@@ -30,16 +30,33 @@ double u(double x){
     return 0;
 }
 
-
+void PrintDensity(Profiles& u, int nCells){
+    for (int i = 1 ; i <= nCells; i++) {
+        std::cout<< u.u1(i) << ", ";
+    }
+}
+void PrintVelocity(Profiles& u, int nCells){
+    for (int i = 1 ; i <= nCells; i++) {
+        std::cout<< u.u2(i) << ", ";
+    }
+}
+void PrintPressure(Profiles& u, int nCells){
+    for (int i = 1 ; i <= nCells; i++) {
+        std::cout<< u.u3(i) << ", ";
+    }
+}
 
 int main(int argc, const char * argv[]) {
     EulerSolver sol(rho, p, u);
-    sol.SetCellNumber(1000);
-    sol.SetGamma(1.5);
+    int nCells = 100;
+    sol.SetCellNumber(nCells);
+    sol.SetGamma(1.4);
     sol.SetRange(0, 1);
     sol.SetTime(0, 0.25);
 //    sol.test();
-    sol.LFSolve();
+    Profiles res(nCells);
+    sol.LFSolve(res);
+    PrintPressure(res, nCells);
     
     
     
