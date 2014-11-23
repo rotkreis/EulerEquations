@@ -7,6 +7,7 @@
 //
 
 #include <iostream>
+#include <fstream>
 #include "Matrix.h"
 #include "EulerEquations.h"
 // Primitive
@@ -31,8 +32,9 @@ double u(double x){
 }
 
 void PrintDensity(Profiles& u, int nCells){
+
     for (int i = 1 ; i <= nCells; i++) {
-        std::cout<< u.u1(i) << ", ";
+        std::cout << u.u1(i) << ", ";
     }
 }
 void PrintVelocity(Profiles& u, int nCells){
@@ -53,13 +55,9 @@ int main(int argc, const char * argv[]) {
     sol.SetGamma(1.4);
     sol.SetRange(0, 1);
     sol.SetTime(0, 0.25);
-//    sol.test();
+
     Profiles res(nCells);
     sol.LWSolve(res);
-    PrintPressure(res, nCells);
-    
-    
-    
-    
+    PrintVelocity(res, nCells);
     return 0;
 }
