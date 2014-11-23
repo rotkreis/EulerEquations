@@ -34,9 +34,14 @@ double u(double x){
 
 int main(int argc, const char * argv[]) {
     std::vector<mVector> nihao(3);
-    nihao[1] = mVector(3);
+    for (int i = 0 ; i != 3; i++) {
+        nihao[i] = mVector(3);
+    }
     nihao[1][1] = 1.1;
+    nihao[0][1] = 1.2;
+    nihao[2] = nihao[1] + nihao[0];
     std::cout << nihao[1] << endl;
+    std::cout << nihao[2] << endl;
     
     EulerSolver sol(rho, p, u);
     sol.SetCellNumber(11);

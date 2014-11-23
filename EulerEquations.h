@@ -16,21 +16,12 @@ typedef double (*pFunc)(double x);
 
 
 
-class Profiles : public Matrix{ // Mathematical Subscripts, index = 1, the first element
+class Profiles : public std::vector<mVector>{ // Mathematical Subscripts, index = 1, the first element
 public:
     Profiles(int nCells):
-    Matrix(3, nCells) {}
+    std::vector<mVector>(nCells) {}
 public:
-    double& u1(int index){
-        assert(index > 0);
-        return data[index - 1][0];
-    }
-    double& u2(int index){
-        return data[index - 1][1];
-    }
-    double& u3(int index){
-        return data[index - 1][2];
-    }
+    
 };
 
 
