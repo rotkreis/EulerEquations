@@ -48,14 +48,14 @@ void PrintPressure(Profiles& u, int nCells){
 
 int main(int argc, const char * argv[]) {
     EulerSolver sol(rho, p, u);
-    int nCells = 100;
+    int nCells = 1000;
     sol.SetCellNumber(nCells);
     sol.SetGamma(1.4);
     sol.SetRange(0, 1);
     sol.SetTime(0, 0.25);
 //    sol.test();
     Profiles res(nCells);
-    sol.LFSolve(res);
+    sol.LWSolve(res);
     PrintPressure(res, nCells);
     
     

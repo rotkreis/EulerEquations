@@ -184,6 +184,26 @@ public:
     double LWComputeTimeStep(Profiles& profile, double atTime){
         return LFComputeTimeStep(profile, atTime);
     }
+    void LWComputeForward(Profiles& uPre, Profiles& uPost, double dt){
+        for (int i = 1; i <= nCells; i++) {
+            uPost[i] = uPre[i] - dt / xStep * (LWRightFlux(uPre, i, dt) - LWLeftFlux(uPre, i, dt));
+        }
+    }
+    void LWSolve(Profiles& res){
+        ComputeSpatialStep();
+        Profiles uPre(nCells);
+        Profiles uPost(nCells);
+        InitiateValues(uPost);
+        double tNow = 0;
+        while (startTime + tNow < finalTIme) {
+            uPre = uPost;
+            double dt = LWComputeTimeStep(uPre, tNow);
+            LWComputeForward(uPre, uPost, dt);
+            tNow += dt;
+        }
+        GetOutput(uPost, res);
+        std::cout << "LW Finished!" <<endl;
+    }
     
     
     mVector LFRightFlux(Profiles& u, int index, double dt){
@@ -246,7 +266,7 @@ public:
             tNow += dt;
         }
         GetOutput(uPost, res);
-        std::cout << "finished!" <<endl;
+        std::cout << "LF Finished!" <<endl;
     }
     void GetOutput(Profiles& uPost, Profiles& res){
         for (int i = 1; i <= nCells; i++) {
