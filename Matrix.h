@@ -20,7 +20,7 @@ using std::vector;
 using std::cout;
 using std::endl;
 
-template<class T>
+
 class Matrix{
 //  Members
 protected:
@@ -30,20 +30,9 @@ protected:
 public:
 // Constructors
     Matrix();
-    Matrix(int row, int col):
-        mNumRows(row), mNumCols(col), data(new TYPE*[mNumCols]) {
-            int i,j;
-            for(i = 0; i != mNumCols; ++i){
-                data[i] = new TYPE[mNumRows];
-            }
-            for (i = 0; i != mNumCols; ++i) {
-                for (j = 0; j != mNumRows; ++j) {
-                    data[i][j] = 0;
-                }
-            }
-        }
+    Matrix(int row, int col);
     Matrix(int dim);
-    Matrix(const Matrix<T>& m);
+    Matrix(const Matrix& m);
     
 // Deconstructor
     ~Matrix(){
@@ -111,91 +100,74 @@ public:
 
 };
 // Operations
-template <class T>
-Matrix<T> operator+(const Matrix<T>& m1, const Matrix<T>& m2);
-template <class T>
-Matrix<T> operator-(const Matrix<T>& m1, const Matrix<T>& m2);
-template <class T>
-Matrix<T> operator*(const Matrix<T>& m1, const Matrix<T>& m2);
-template <class T>
-Matrix<T> operator*(const Matrix<T>& m1, const TYPE& num);
-template <class T>
-Matrix<T> operator/(const Matrix<T>& m1, const TYPE& num);
+Matrix operator+(const Matrix& m1, const Matrix& m2);
+Matrix operator-(const Matrix& m1, const Matrix& m2);
+Matrix operator*(const Matrix& m1, const Matrix& m2);
+Matrix operator*(const Matrix& m1, const TYPE& num);
+Matrix operator/(const Matrix& m1, const TYPE& num);
 
-template<class T>
-std::ostream& operator<<(std::ostream& out, const Matrix<T>& m){
-    int i, j;
-    if(m.data == nullptr) cout << "Empty Matrix";
-    for (i = 0; i != m.mNumRows; i++){
-        for(j = 0; j!= m.mNumCols; j++){
-            out << m[j][i];
-        }
-        out << std::endl;
+
+
+// Algorithms
+int LUDecomp(const Matrix& m, Matrix& l, Matrix& u);
+int LUPivotDecomp(const Matrix& m, Matrix& p, Matrix& l, Matrix& u);
+int CholeskyDecomp(const Matrix& m, Matrix& l);
+int LDLDecomp(const Matrix& m, Matrix &l, Matrix& d);
+
+int LUSolve(const Matrix& m,  const Matrix& rhs, Matrix& res);
+int LUPivotSolve(const Matrix& m, const Matrix& rhs, Matrix& res);
+int CholeskySolve(const Matrix&m, const Matrix& rhs, Matrix& res);
+int LDLSolve(const Matrix& m, const Matrix& rhs, Matrix& res);
+
+int lowerSolve(const Matrix& l,const Matrix& rhs, Matrix& res);
+int upperSolve(const Matrix& u,const Matrix& rhs, Matrix& res);
+
+
+class mVector : public Matrix {
+public:
+    using Matrix::operator=;
+public:
+    int dim(){
+        return this -> mNumRows;
     }
-    return out;
-}
+    int dim() const{
+        return this -> mNumRows;
+    }
+public:
+    TYPE& operator[](int index){
+        return data[0][index];
+    }
+    const TYPE& operator[](int index) const{
+        return data[0][index];
+    }
+public:
+    mVector() {}
+    mVector(int dim){
+        mNumRows = dim;
+        mNumCols = 1;
+        data = new TYPE*[1];
+        data[0] = new TYPE[dim];
+        for (int i = 0; i != dim; i++) {
+            data[0][i] = 0;
+        }
+    }
+    mVector(const mVector& rhs){
+        mNumRows = rhs.dim();
+        mNumCols = 1;
+        data = new TYPE*[1];
+        data[0] = new TYPE[rhs.dim()];
+        for (int i = 0; i != rhs.dim(); i++) {
+            data[0][i] = rhs[i];
+        }
+    }
+    double NormInf();
+    double NormInf(int& position);
+    double Norm_2();
+    double Norm_1();
+    
+};
 
-//
-//// Algorithms
-//int LUDecomp(const Matrix& m, Matrix& l, Matrix& u);
-//int LUPivotDecomp(const Matrix& m, Matrix& p, Matrix& l, Matrix& u);
-//int CholeskyDecomp(const Matrix& m, Matrix& l);
-//int LDLDecomp(const Matrix& m, Matrix &l, Matrix& d);
-//
-//int LUSolve(const Matrix& m,  const Matrix& rhs, Matrix& res);
-//int LUPivotSolve(const Matrix& m, const Matrix& rhs, Matrix& res);
-//int CholeskySolve(const Matrix&m, const Matrix& rhs, Matrix& res);
-//int LDLSolve(const Matrix& m, const Matrix& rhs, Matrix& res);
-//
-//int lowerSolve(const Matrix& l,const Matrix& rhs, Matrix& res);
-//int upperSolve(const Matrix& u,const Matrix& rhs, Matrix& res);
-//
-//
-//class mVector : public Matrix {
-//public:
-//    using Matrix::operator=;
-//public:
-//    int dim(){
-//        return this -> mNumRows;
-//    }
-//    int dim() const{
-//        return this -> mNumRows;
-//    }
-//public:
-//    TYPE& operator[](int index){
-//        return data[0][index];
-//    }
-//    const TYPE& operator[](int index) const{
-//        return data[0][index];
-//    }
-//public:
-//    mVector() {}
-//    mVector(int dim){
-//        mNumRows = dim;
-//        mNumCols = 1;
-//        data = new TYPE*[1];
-//        data[0] = new TYPE[dim];
-//        for (int i = 0; i != dim; i++) {
-//            data[0][i] = 0;
-//        }
-//    }
-//    mVector(const mVector& rhs){
-//        mNumRows = rhs.dim();
-//        mNumCols = 1;
-//        data = new TYPE*[1];
-//        data[0] = new TYPE[rhs.dim()];
-//        for (int i = 0; i != rhs.dim(); i++) {
-//            data[0][i] = rhs[i];
-//        }
-//    }
-//    double NormInf();
-//    double NormInf(int& position);
-//    double Norm_2();
-//    double Norm_1();
-//    
-//};
-//
-//double InnerProduct(mVector& v1, mVector& v2);
+double InnerProduct(mVector& v1, mVector& v2);
 
 
 
