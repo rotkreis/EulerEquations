@@ -10,6 +10,7 @@
 #define __MatrixClass__Matrix__
 #define TYPE double
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <cmath>
 #include <cstdio>
@@ -96,6 +97,7 @@ public:
 
 public:
     friend std::ostream& operator<<(std::ostream& out, const Matrix& m);
+    friend std::ofstream& operator<<(std::ofstream& out, Matrix& m);
     friend std::ostream& latex(std::ostream& out, const Matrix& m, int line);
 
 };

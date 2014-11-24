@@ -604,6 +604,18 @@ std::ostream& operator<<(std::ostream& out, const Matrix& m){
     return out;
 }
 
+std::ofstream& operator<<(std::ofstream& out, Matrix& m){
+    int i, j;
+    if(m.data == nullptr) cout << "Empty Matrix";
+    for (i = 0; i != m.mNumRows; i++){
+        for(j = 0; j!= m.mNumCols; j++){
+            out << m[j][i];
+        }
+        out << std::endl;
+    }
+    return out;
+}
+
 std::ostream& latex(std::ostream& out, const Matrix& m, int line){
     int i, j;
     int t = 0;

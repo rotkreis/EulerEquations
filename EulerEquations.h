@@ -177,6 +177,7 @@ public:
         }
         return max;
     }
+// HLL
     mVector HLLRightFlux(Profiles& profile, int index, double dt){
         mVector temp(3);
         mVector eigenvalues(3);
@@ -252,7 +253,7 @@ public:
         GetOutput(uPost, res);
         std::cout << "HLL finished!" << std::endl;
     }
-    
+// LW
     mVector LWRightFlux(Profiles& profile, int index, double dt){
         mVector temp(3);
         if (index == nCells) {
@@ -260,7 +261,7 @@ public:
             return temp;
         }
         mVector eigenvalues(3);
-        eigenvalues = ComputeEigenvalues(profile, index);
+        eigenvalues = 0.5 * (ComputeEigenvalues(profile, index) + ComputeEigenvalues(profile, index + 1));
         temp = 0.5 * (Flux(profile[index]) + Flux(profile[index + 1])) - 0.5 * dt / xStep * pow(eigenvalues.Norm_2(), 2) *(profile[index + 1] - profile[index]);
         return temp;
     }
@@ -271,7 +272,8 @@ public:
             return temp;
         }
         mVector eigenvalues(3);
-        eigenvalues = ComputeEigenvalues(profile, index);
+//        eigenvalues = ComputeEigenvalues(profile, index);
+        eigenvalues = 0.5 * (ComputeEigenvalues(profile, index) + ComputeEigenvalues(profile, index - 1));
         temp = 0.5 * (Flux(profile[index - 1]) + Flux(profile[index])) - 0.5 * dt / xStep * pow(eigenvalues.Norm_2(), 2) *(profile[index] - profile[index - 1]);
         return temp;
     }
@@ -299,7 +301,7 @@ public:
         std::cout << "LW Finished!" << std::endl;
     }
     
-    
+//LF
     mVector LFRightFlux(Profiles& u, int index, double dt){
         mVector temp(3);
         if (index == nCells) { // Boundary
