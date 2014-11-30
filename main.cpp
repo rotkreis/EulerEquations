@@ -69,16 +69,16 @@ void PrintPressure(Profiles& u, int nCells){
 }
 
 int main(int argc, const char * argv[]) {
-    EulerSolver sol(rho, p, u);
-//    EulerSolver sol(rho123,p123,u123);
-    int nCells = 1000;
+//    EulerSolver sol(rho, p, u);
+    EulerSolver sol(rho123,p123,u123);
+    int nCells = 100;
     sol.SetCellNumber(nCells);
     sol.SetGamma(1.4);
     sol.SetRange(0, 1);
     sol.SetTime(0, 0.25);
 
     Profiles res(nCells);
-    sol.LWSolve(res);
+    sol.HLLSolve(res);
     
     std::ofstream myfile;
     myfile.open("/Users/lixr/Documents/Codes/Research/EulerEquations/EulerEquations/test.txt");

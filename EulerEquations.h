@@ -168,6 +168,24 @@ public:
         }
         return min;
     }
+    double min(double x1, double x2){
+        if (x1 < x2) {
+            return x1;
+        }
+        else {
+            return x2;
+        }
+    }
+    double max(double x1, double x2){
+        if (x1 > x2) {
+            return x1;
+        }
+        else{
+            return x2;
+        }
+    }
+
+    
     double max(mVector& vec){
         double max = vec[0];
         for (int i = 1; i != vec.dim(); i++) {
@@ -180,16 +198,24 @@ public:
 // HLL
     mVector HLLRightFlux(Profiles& profile, int index, double dt){
         mVector temp(3);
-        mVector eigenvalues(3);
-        eigenvalues = ComputeEigenvalues(profile, index);
-        double SL = min(eigenvalues);
-        double SR = max(eigenvalues);
-        mVector FL(3),FR(3);
+        mVector FL(3);
         FL = Flux(profile[index]);
         if (index == nCells) {
             return FL;
         }
         else {
+            mVector eigenvaluesL(3);
+            mVector eigenvaluesR(3);
+            eigenvaluesL = ComputeEigenvalues(profile, index);
+            eigenvaluesR = ComputeEigenvalues(profile, index + 1);
+            mVector FR(3);
+            double SL, SR;
+            double min1 = min(eigenvaluesL);
+            double min2 = min(eigenvaluesR);
+            SL = min(min1, min2);
+            double max1 = max(eigenvaluesL);
+            double max2 = max(eigenvaluesR);
+            SR = max(max1,max2);
             FR = Flux(profile[index + 1]);
             if (SL > 0) {
                 temp = FL;
@@ -206,17 +232,26 @@ public:
     }
     mVector HLLLeftFlux(Profiles& profile, int index, double dt){
         mVector temp(3);
-        mVector eigenvalues(3);
-        eigenvalues = ComputeEigenvalues(profile, index);
-        double SL = min(eigenvalues);
-        double SR = max(eigenvalues);
-        mVector FL(3),FR(3);
+
+        mVector FR(3);
         FR = Flux(profile[index]);
         if (index == 1) {
             return FR;
         }
         else {
+            mVector FL(3);
             FL = Flux(profile[index - 1]);
+            mVector eigenvaluesL(3);
+            mVector eigenvaluesR(3);
+            eigenvaluesL = ComputeEigenvalues(profile, index - 1);
+            eigenvaluesR = ComputeEigenvalues(profile, index);
+            double SL, SR;
+            double min1 = min(eigenvaluesL);
+            double min2 = min(eigenvaluesR);
+            SL = min(min1, min2);
+            double max1 = max(eigenvaluesL);
+            double max2 = max(eigenvaluesR);
+            SR = max(max1, max2);
             if (SL > 0) {
                 temp = FL;
             }
