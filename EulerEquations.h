@@ -335,7 +335,6 @@ public:
         GetOutput(uPost, res);
         std::cout << "LW Finished!" << std::endl;
     }
-    
 //LF
     mVector LFRightFlux(Profiles& u, int index, double dt){
         mVector temp(3);
@@ -399,6 +398,42 @@ public:
         GetOutput(uPost, res);
         std::cout << "LF Finished!" <<endl;
     }
+    //FORCE
+    mVector FORCERightFlux(Profiles& u, int index, double dt){
+        mVector temp(3);
+        temp = .5 * (LFRightFlux(u, index, dt) + LWRightFlux(u, index, dt));
+        return temp;
+    }
+    mVector FORCELeftFlux(Profiles& u, int index, double dt){
+        mVector temp(3);
+        temp = .5 * (LFLeftFlux(u, index, dt) + LWLeftFlux(u, index, dt));
+        return temp;
+    }
+    void FORCEComputeForward(Profiles& uPre, Profiles& uPost, double dt){
+        for (int i = 1; i <= nCells; i++) {
+            uPost[i] = uPre[i] - dt / xStep * (FORCERightFlux(uPre, i, dt) - FORCELeftFlux(uPre, i, dt));
+        }
+    }
+    double FORCEComputeTimeStep(Profiles& profile, double atTime){
+        return LFComputeTimeStep(profile, atTime);
+    }
+    void FORCESolve(Profiles& res){
+        ComputeSpatialStep();
+        Profiles uPre(nCells);
+        Profiles uPost(nCells);
+        InitiateValues(uPost);
+        double tNow = 0;
+        while (startTime + tNow < finalTIme) {
+            uPre = uPost;
+            double dt = FORCEComputeTimeStep(uPre, tNow);
+            FORCEComputeForward(uPre, uPost, dt);
+            tNow += dt;
+        }
+        GetOutput(uPost, res);
+        std::cout << "FORCE Finished!" <<endl;
+    }
+
+    
     void GetOutput(Profiles& uPost, Profiles& res){
         for (int i = 1; i <= nCells; i++) {
             res.u1(i) = GetDensity(uPost, i);
@@ -406,6 +441,11 @@ public:
             res.u3(i) = GetPressure(uPost, i);
         }
     }
+    
 };
+
+
+
+    
 
 #endif /* defined(__EulerEquations__EulerEquations__) */
