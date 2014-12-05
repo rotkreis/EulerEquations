@@ -148,6 +148,23 @@ public:
         eigenvalues[2] = u + a;
         return eigenvalues;
     }
+    Matrix ComputeJacobian(Profiles& profile, int index){
+        Matrix jacobian(3,3);
+        double u1 = profile.u1(index);
+        double u2 = profile.u2(index);
+        double u3 = profile.u3(index);
+        jacobian(0,0) = 0;
+        jacobian(0,1) = 1;
+        jacobian(0,2) = 0;
+        jacobian(1,0) = -0.5 * (gamma - 3) * pow(u2 / u1, 2);
+        jacobian(1,1) = (3 - gamma) * (u2 / u1);
+        jacobian(1,2) = gamma - 1;
+        jacobian(2,0) = - gamma * u2 * u3 / pow(u1, 2) + (gamma - 1) * pow(u2 / u1, 3) * gamma * u3 / u1;
+        jacobian(2,1) = - 3.0 / 2 * (gamma - 1) * pow(u2 / u1, 2);
+        jacobian(2,2) = gamma * (u2 / u1);
+        return jacobian;
+    }
+    
     double GetDensity(Profiles& profile, int index){
         return profile.u1(index);
     }
@@ -295,9 +312,7 @@ public:
             temp = Flux(profile[index]);
             return temp;
         }
-        mVector eigenvalues(3);
-        eigenvalues = 0.5 * (ComputeEigenvalues(profile, index) + ComputeEigenvalues(profile, index + 1));
-        temp = 0.5 * (Flux(profile[index]) + Flux(profile[index + 1])) - 0.5 * dt / xStep * pow(eigenvalues.Norm_2(), 2) *(profile[index + 1] - profile[index]);
+        temp = 0.5 * (Flux(profile[index]) + Flux(profile[index + 1])) - 0.5 * dt / xStep * ComputeJacobian(profile, index) * ComputeJacobian(profile, index + 1) *(profile[index + 1] - profile[index]);
         return temp;
     }
     mVector LWLeftFlux(Profiles& profile, int index, double dt){
@@ -306,10 +321,7 @@ public:
             temp = Flux(profile[index]);
             return temp;
         }
-        mVector eigenvalues(3);
-//        eigenvalues = ComputeEigenvalues(profile, index);
-        eigenvalues = 0.5 * (ComputeEigenvalues(profile, index) + ComputeEigenvalues(profile, index - 1));
-        temp = 0.5 * (Flux(profile[index - 1]) + Flux(profile[index])) - 0.5 * dt / xStep * pow(eigenvalues.Norm_2(), 2) *(profile[index] - profile[index - 1]);
+        temp = 0.5 * (Flux(profile[index - 1]) + Flux(profile[index])) - 0.5 * dt / xStep * ComputeJacobian(profile, index) * ComputeJacobian(profile, index - 1) *(profile[index] - profile[index - 1]);
         return temp;
     }
     double LWComputeTimeStep(Profiles& profile, double atTime){

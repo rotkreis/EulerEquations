@@ -8,6 +8,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <ctime>
 #include "Matrix.h"
 #include "EulerEquations.h"
 // Primitive
@@ -85,21 +86,29 @@ void PrintPressure(Profiles& u, int nCells){
 int main(int argc, const char * argv[]) {
     EulerSolver sol(rho, p, u);
 //    EulerSolver sol(rho123,p123,u123);
-    int nCells = 500;
+    int nCells = 20000;
     sol.SetCellNumber(nCells);
     sol.SetGamma(1.4);
     sol.SetRange(0, 1);
     sol.SetTime(0, 0.25);
-
+    std::clock_t start;
+    double duration;
+    
+    start = std::clock();
+    
     Profiles res(nCells);
-    sol.FORCESolve(res);
+//    sol.FORCESolve(res);
+    
+    sol.HLLSolve(res);
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout<<"Duration "<< duration <<'\n';
     
     std::ofstream density;
     std::ofstream velocity;
     std::ofstream pressure;
-    density.open("/Users/lixr/Documents/Codes/Research/EulerEquations/EulerEquations/FORCEd.dat");
-    velocity.open("/Users/lixr/Documents/Codes/Research/EulerEquations/EulerEquations/FORCEv.dat");
-    pressure.open("/Users/lixr/Documents/Codes/Research/EulerEquations/EulerEquations/FORCEp.dat");
+    density.open("/Users/lixr/Documents/Codes/Research/EulerEquations/EulerEquations/FORCEdnew.dat");
+    velocity.open("/Users/lixr/Documents/Codes/Research/EulerEquations/EulerEquations/FORCEvnew.dat");
+    pressure.open("/Users/lixr/Documents/Codes/Research/EulerEquations/EulerEquations/FORCEpnew.dat");
     WriteDensity(res, nCells,density);
     WriteVelocity(res, nCells, velocity);
     WritePressure(res, nCells, pressure);
