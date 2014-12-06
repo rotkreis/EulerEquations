@@ -13,10 +13,11 @@
 #include "Matrix.h"
 
 
-
-class mVector : public Matrix {
+template <class T>
+class mVector : public Matrix<T> {
 public:
-    using Matrix::operator=;
+    using Matrix<T>::operator=;
+
 public:
     int dim(){
         return this -> mNumRows;
@@ -25,39 +26,71 @@ public:
         return this -> mNumRows;
     }
 public:
-    TYPE& operator[](int index){
-        return data[0][index];
+    T& operator[](int index){
+        return Matrix<T>::data[0][index];
     }
-    const TYPE& operator[](int index) const{
-        return data[0][index];
+    const T& operator[](int index) const{
+        return Matrix<T>::data[0][index];
     }
 public:
     mVector() {}
     mVector(int dim){
-        mNumRows = dim;
-        mNumCols = 1;
-        data = new TYPE*[1];
-        data[0] = new TYPE[dim];
+        this->mNumRows = dim;
+        this->mNumCols = 1;
+        this->data = new T*[1];
+        this->data[0] = new T[dim];
         for (int i = 0; i != dim; i++) {
-            data[0][i] = 0;
+            this->data[0][i] = 0;
         }
     }
     mVector(const mVector& rhs){
-        mNumRows = rhs.dim();
-        mNumCols = 1;
-        data = new TYPE*[1];
-        data[0] = new TYPE[rhs.dim()];
+        this->mNumRows = rhs.dim();
+        this->mNumCols = 1;
+        this->data = new T*[1];
+        this->data[0] = new T[rhs.dim()];
         for (int i = 0; i != rhs.dim(); i++) {
-            data[0][i] = rhs[i];
+            this->data[0][i] = rhs[i];
         }
     }
-    double NormInf();
-    double NormInf(int& position);
-    double Norm_2();
-    double Norm_1();
+    T NormInf(){
+        T max = 0;
+        for (int i = 0; i != this->mNumRows; i++) {
+            if (std::abs((double) this->data[0][i]) > max ) {
+                max = std::abs((double) this->data[0][i]);
+            }
+        }
+        return max;
+    }
+    T NormInf(int& position){
+        T max = 0;
+        for (int i = 0; i != this->mNumRows; i++) {
+            if (std::abs((double) this->data[0][i]) > max ) {
+                max = std::abs((double) this->data[0][i]);
+                position = i;
+            }
+        }
+        return max;
+    }
+    T Norm_2(){
+        T sum = 0;
+        for (int i = 0; i != Matrix<T>::mNumRows; i++) {
+            sum += this -> pow(this->data[0][i],2);
+        }
+        return sum;
+    }
+    T Norm_1(){
+        T max = 0;
+        for (int i = 0; i!= this->mNumRows; i++) {
+            if (std::abs(this->data[0][i])> max) {
+                max = std::abs(this -> data[0][i]);
+            }
+        }
+        return max;
+    }
     
 };
+template <class T>
+T InnerProduct(mVector<T>& v1, mVector<T>& v2){}
 
-double InnerProduct(mVector& v1, mVector& v2);
 
 #endif /* defined(__EulerEquations__Vector__) */

@@ -8,11 +8,15 @@
 
 #include <iostream>
 #include "Matrix.h"
+#include "Vector.h"
 int main(int argc, const char * argv[]) {
     // insert code here...
-    Matrix<double> hei(3,3);
-    hei(2,1) = (double)1;
-    std::cout << hei;
+    Matrix<double> mat(3,3);
+    mat(1,1)=1;
+    std::cout << mat;
+    mVector<double> vec(3);
+    vec[1] = 1;
+    std::cout << vec.NormInf();
     std::cout << "Hello, World!\n";
     return 0;
 }
