@@ -123,7 +123,7 @@ public:
         return *this;
     }
     Matrix<T>& operator-=(const Matrix<T>& rhs){
-        return *this += rhs * -1;
+        return *this += rhs * -1.0;
     }
     Matrix<T>& operator*=(const T& rhs){
         for(int i = 0; i != mNumCols; i++)
@@ -308,6 +308,16 @@ Matrix<T> operator*(const Matrix<T>& m1, const T& num){
     res *= num;
     return res;
 }
+template<class T>
+Matrix<T> operator*(const T& num, const Matrix<T>& m1 ){
+    Matrix<T> res(m1.GetNumRows(),m1.GetNumCols());
+    res = m1;
+    res *= num;
+    return res;
+}
+
+
+
 template<class T>
 Matrix<T> operator/(const Matrix<T>& m1, const T& num){
     Matrix<T> res(m1.GetNumRows(),m1.GetNumCols());
