@@ -65,8 +65,6 @@ void WritePressure(Profiles& u, int nCells, std::ofstream& myfile){
     }
 }
 
-
-
 void PrintDensity(Profiles& u, int nCells){
     for (int i = 1 ; i <= nCells; i++) {
         std::cout<< u.u1(i) << ", ";
@@ -86,7 +84,7 @@ void PrintPressure(Profiles& u, int nCells){
 int main(int argc, const char * argv[]) {
     EulerSolver sol(rho, p, u);
 //    EulerSolver sol(rho123,p123,u123);
-    int nCells = 20000;
+    int nCells = 1000;
     sol.SetCellNumber(nCells);
     sol.SetGamma(1.4);
     sol.SetRange(0, 1);
@@ -99,7 +97,7 @@ int main(int argc, const char * argv[]) {
     Profiles res(nCells);
 //    sol.FORCESolve(res);
     
-    sol.HLLSolve(res);
+    sol.LFSolve(res);
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     std::cout<<"Duration "<< duration <<'\n';
     

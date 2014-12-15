@@ -137,7 +137,7 @@ public:
         temp[2] = gamma * u[1] * u[2] / u[0] - 0.5 * (gamma - 1) * pow(u[1],3) / pow(u[0],2);
         return temp;
     }
-    mVector ComputeEigenvalues(Profiles& profile, int index){
+    mVector ComputeEigenvalues(Cell& u){
         mVector eigenvalues(3);
         double rho = GetDensity(profile, index);
         double u = GetVelocity(profile, index);
@@ -148,23 +148,6 @@ public:
         eigenvalues[2] = u + a;
         return eigenvalues;
     }
-    Matrix ComputeJacobian(Profiles& profile, int index){
-        Matrix jacobian(3,3);
-        double u1 = profile.u1(index);
-        double u2 = profile.u2(index);
-        double u3 = profile.u3(index);
-        jacobian(0,0) = 0;
-        jacobian(0,1) = 1;
-        jacobian(0,2) = 0;
-        jacobian(1,0) = -0.5 * (gamma - 3) * pow(u2 / u1, 2);
-        jacobian(1,1) = (3 - gamma) * (u2 / u1);
-        jacobian(1,2) = gamma - 1;
-        jacobian(2,0) = - gamma * u2 * u3 / pow(u1, 2) + (gamma - 1) * pow(u2 / u1, 3) * gamma * u3 / u1;
-        jacobian(2,1) = - 3.0 / 2 * (gamma - 1) * pow(u2 / u1, 2);
-        jacobian(2,2) = gamma * (u2 / u1);
-        return jacobian;
-    }
-    
     double GetDensity(Profiles& profile, int index){
         return profile.u1(index);
     }
@@ -213,166 +196,144 @@ public:
         return max;
     }
 // HLL
-    mVector HLLRightFlux(Profiles& profile, int index, double dt){
-        mVector temp(3);
-        mVector FL(3);
-        FL = Flux(profile[index]);
-        if (index == nCells) {
-            return FL;
-        }
-        else {
-            mVector eigenvaluesL(3);
-            mVector eigenvaluesR(3);
-            eigenvaluesL = ComputeEigenvalues(profile, index);
-            eigenvaluesR = ComputeEigenvalues(profile, index + 1);
-            mVector FR(3);
-            double SL, SR;
-            double min1 = min(eigenvaluesL);
-            double min2 = min(eigenvaluesR);
-            SL = min(min1, min2);
-            double max1 = max(eigenvaluesL);
-            double max2 = max(eigenvaluesR);
-            SR = max(max1,max2);
-            FR = Flux(profile[index + 1]);
-            if (SL > 0) {
-                temp = FL;
-            }
-            if (SL < 0 && SR > 0) {
-                temp = (SR * FL - SL * FR + SL * SR * (profile[index + 1] - profile[index]))
-                     / (SR - SL);
-            }
-            if (SR < 0) {
-                temp = FR;
-            }
-        }
-        return temp;
-    }
-    mVector HLLLeftFlux(Profiles& profile, int index, double dt){
-        mVector temp(3);
-
-        mVector FR(3);
-        FR = Flux(profile[index]);
-        if (index == 1) {
-            return FR;
-        }
-        else {
-            mVector FL(3);
-            FL = Flux(profile[index - 1]);
-            mVector eigenvaluesL(3);
-            mVector eigenvaluesR(3);
-            eigenvaluesL = ComputeEigenvalues(profile, index - 1);
-            eigenvaluesR = ComputeEigenvalues(profile, index);
-            double SL, SR;
-            double min1 = min(eigenvaluesL);
-            double min2 = min(eigenvaluesR);
-            SL = min(min1, min2);
-            double max1 = max(eigenvaluesL);
-            double max2 = max(eigenvaluesR);
-            SR = max(max1, max2);
-            if (SL > 0) {
-                temp = FL;
-            }
-            if (SL < 0 && SR > 0) {
-                temp = (SR * FL - SL * FR + SL * SR * (profile[index] - profile[index - 1]))
-                / (SR - SL);
-            }
-            if (SR < 0) {
-                temp = FR;
-            }
-        }
-        return temp;
-    }
-    double HLLComputeTimeStep(Profiles& profile, double atTime){
-        return LFComputeTimeStep(profile, atTime);
-    }
-    void HLLComputeForward(Profiles& uPre, Profiles& uPost, double dt){
-        for (int i = 1; i <= nCells; i++) {
-            uPost[i] = uPre[i] - dt / xStep * (HLLRightFlux(uPre, i, dt) - HLLLeftFlux(uPre, i, dt));
-        }
-    }
-    void HLLSolve(Profiles& res) {
-        ComputeSpatialStep();
-        Profiles uPre(nCells);
-        Profiles uPost(nCells);
-        InitiateValues(uPost);
-        double tNow = 0;
-        while (startTime + tNow < finalTIme) {
-            uPre = uPost;
-            double dt = HLLComputeTimeStep(uPre, tNow);
-            HLLComputeForward(uPre, uPost, dt);
-            tNow += dt;
-        }
-        GetOutput(uPost, res);
-        std::cout << "HLL finished!" << std::endl;
-    }
+//    mVector HLLRightFlux(Profiles& profile, int index, double dt){
+//        mVector temp(3);
+//        mVector FL(3);
+//        FL = Flux(profile[index]);
+//        if (index == nCells) {
+//            return FL;
+//        }
+//        else {
+//            mVector eigenvaluesL(3);
+//            mVector eigenvaluesR(3);
+//            eigenvaluesL = ComputeEigenvalues(profile, index);
+//            eigenvaluesR = ComputeEigenvalues(profile, index + 1);
+//            mVector FR(3);
+//            double SL, SR;
+//            double min1 = min(eigenvaluesL);
+//            double min2 = min(eigenvaluesR);
+//            SL = min(min1, min2);
+//            double max1 = max(eigenvaluesL);
+//            double max2 = max(eigenvaluesR);
+//            SR = max(max1,max2);
+//            FR = Flux(profile[index + 1]);
+//            if (SL > 0) {
+//                temp = FL;
+//            }
+//            if (SL < 0 && SR > 0) {
+//                temp = (SR * FL - SL * FR + SL * SR * (profile[index + 1] - profile[index]))
+//                     / (SR - SL);
+//            }
+//            if (SR < 0) {
+//                temp = FR;
+//            }
+//        }
+//        return temp;
+//    }
+//    mVector HLLLeftFlux(Profiles& profile, int index, double dt){
+//        mVector temp(3);
+//        mVector FR(3);
+//        FR = Flux(profile[index]);
+//        if (index == 1) {
+//            return FR;
+//        }
+//        else {
+//            mVector FL(3);
+//            FL = Flux(profile[index - 1]);
+//            mVector eigenvaluesL(3);
+//            mVector eigenvaluesR(3);
+//            eigenvaluesL = ComputeEigenvalues(profile, index - 1);
+//            eigenvaluesR = ComputeEigenvalues(profile, index);
+//            double SL, SR;
+//            double min1 = min(eigenvaluesL);
+//            double min2 = min(eigenvaluesR);
+//            SL = min(min1, min2);
+//            double max1 = max(eigenvaluesL);
+//            double max2 = max(eigenvaluesR);
+//            SR = max(max1, max2);
+//            if (SL > 0) {
+//                temp = FL;
+//            }
+//            if (SL < 0 && SR > 0) {
+//                temp = (SR * FL - SL * FR + SL * SR * (profile[index] - profile[index - 1]))
+//                / (SR - SL);
+//            }
+//            if (SR < 0) {
+//                temp = FR;
+//            }
+//        }
+//        return temp;
+//    }
+//    void HLLComputeForward(Profiles& uPre, Profiles& uPost, double dt){
+//        for (int i = 1; i <= nCells; i++) {
+//            uPost[i] = uPre[i] - dt / xStep * (HLLRightFlux(uPre, i, dt) - HLLLeftFlux(uPre, i, dt));
+//        }
+//    }
+//    void HLLSolve(Profiles& res) {
+//        ComputeSpatialStep();
+//        Profiles uPre(nCells);
+//        Profiles uPost(nCells);
+//        InitiateValues(uPost);
+//        double tNow = 0;
+//        while (startTime + tNow < finalTIme) {
+//            uPre = uPost;
+//            double dt = ComputeTimeStep(uPre, tNow);
+//            HLLComputeForward(uPre, uPost, dt);
+//            tNow += dt;
+//        }
+//        GetOutput(uPost, res);
+//        std::cout << "HLL finished!" << std::endl;
+//    }
 // LW
-    mVector LWRightFlux(Profiles& profile, int index, double dt){
-        mVector temp(3);
-        if (index == nCells) {
-            temp = Flux(profile[index]);
-            return temp;
-        }
-        temp = 0.5 * (Flux(profile[index]) + Flux(profile[index + 1])) - 0.5 * dt / xStep * ComputeJacobian(profile, index) * ComputeJacobian(profile, index + 1) *(profile[index + 1] - profile[index]);
-        return temp;
-    }
-    mVector LWLeftFlux(Profiles& profile, int index, double dt){
-        mVector temp(3);
-        if (index == 1) {
-            temp = Flux(profile[index]);
-            return temp;
-        }
-        temp = 0.5 * (Flux(profile[index - 1]) + Flux(profile[index])) - 0.5 * dt / xStep * ComputeJacobian(profile, index) * ComputeJacobian(profile, index - 1) *(profile[index] - profile[index - 1]);
-        return temp;
-    }
-    double LWComputeTimeStep(Profiles& profile, double atTime){
-        return LFComputeTimeStep(profile, atTime);
-    }
-    void LWComputeForward(Profiles& uPre, Profiles& uPost, double dt){
-        for (int i = 1; i <= nCells; i++) {
-            uPost[i] = uPre[i] - dt / xStep * (LWRightFlux(uPre, i, dt) - LWLeftFlux(uPre, i, dt));
-        }
-    }
-    void LWSolve(Profiles& res){
-        ComputeSpatialStep();
-        Profiles uPre(nCells);
-        Profiles uPost(nCells);
-        InitiateValues(uPost);
-        double tNow = 0;
-        while (startTime + tNow < finalTIme) {
-            uPre = uPost;
-            double dt = LWComputeTimeStep(uPre, tNow);
-            LWComputeForward(uPre, uPost, dt);
-            tNow += dt;
-        }
-        GetOutput(uPost, res);
-        std::cout << "LW Finished!" << std::endl;
-    }
+//    mVector LWRightFlux(Profiles& profile, int index, double dt){
+//        mVector temp(3);
+//        if (index == nCells) {
+//            temp = Flux(profile[index]);
+//            return temp;
+//        }
+//        return temp;
+//    }
+//    mVector LWLeftFlux(Profiles& profile, int index, double dt){
+//        mVector temp(3);
+//        if (index == 1) {
+//            temp = Flux(profile[index]);
+//            return temp;
+//        }
+//        return temp;
+//    }
+//    void LWComputeForward(Profiles& uPre, Profiles& uPost, double dt){
+//        for (int i = 1; i <= nCells; i++) {
+//            uPost[i] = uPre[i] - dt / xStep * (LWRightFlux(uPre, i, dt) - LWLeftFlux(uPre, i, dt));
+//        }
+//    }
+//    void LWSolve(Profiles& res){
+//        ComputeSpatialStep();
+//        Profiles uPre(nCells);
+//        Profiles uPost(nCells);
+//        InitiateValues(uPost);
+//        double tNow = 0;
+//        while (startTime + tNow < finalTIme) {
+//            uPre = uPost;
+//            double dt = ComputeTimeStep(uPre, tNow);
+//            LWComputeForward(uPre, uPost, dt);
+//            tNow += dt;
+//        }
+//        GetOutput(uPost, res);
+//        std::cout << "LW Finished!" << std::endl;
+//    }
 //LF
-    mVector LFRightFlux(Profiles& u, int index, double dt){
-        mVector temp(3);
-        if (index == nCells) { // Boundary
-            temp = Flux(u[index]);
-            return temp;
-        }
-        temp = 0.5 * (Flux(u[index]) + Flux(u[index + 1])) - (u[index + 1] - u[index]) / (2 * dt / xStep);
-        return temp;
-    }
-    mVector LFLeftFlux(Profiles& u, int index, double dt){
-        mVector temp(3);
-        if (index == 1) { // Boundary
-            temp = Flux(u[index]);
-            return temp;
-        }
-        temp = 0.5 * (Flux(u[index - 1]) + Flux(u[index])) - (u[index] - u[index - 1]) / (2 * dt / xStep);
-        return temp;
+    mVector LFFlux(Cell& left, Cell& right, double dt){
+        return 0.5 * (Flux(left) + Flux(right))-(right - left) / (2 * dt / xStep);
     }
     
     void LFComputeForward(Profiles& uPre, Profiles& uPost, double dt){
-        for (int i = 1; i <= nCells; i++) {
-            uPost[i] = uPre[i] - dt / xStep * (LFRightFlux(uPre, i, dt) - LFLeftFlux(uPre, i, dt));
+        for (int i = 2; i <= nCells - 1; i++) {
+            uPost[i] = uPre[i] - dt / xStep * (LFFlux(uPre[i], uPre[i+1], dt) - LFFlux(uPre[i - 1], uPre[i], dt));
         }
+        uPost[1] = uPre[1] - dt / xStep * (LFFlux(uPre[1], uPre[2], dt) - LFFlux(uPre[1], uPre[1], dt));
+        uPost[nCells] = uPre[1] - dt/xStep * (LFFlux(uPre[nCells - 1], uPre[nCells], dt) - LFFlux(uPre[nCells], uPre[nCells], dt));
     }
-    double LFComputeTimeStep(Profiles& profile, double atTime){
+    double ComputeTimeStep(Profiles& profile, double atTime){
         double tMin = 0.1;
         for (int i = 1 ; i <= nCells; i++) {
             mVector eigenvalues(3);
@@ -403,7 +364,7 @@ public:
         double tNow = 0;
         while (startTime + tNow < finalTIme) {
             uPre = uPost;
-            double dt = LFComputeTimeStep(uPre, tNow);
+            double dt = ComputeTimeStep(uPre, tNow);
             LFComputeForward(uPre, uPost, dt);
             tNow += dt;
         }
@@ -411,50 +372,44 @@ public:
         std::cout << "LF Finished!" <<endl;
     }
     //FORCE
-    mVector FORCERightFlux(Profiles& u, int index, double dt){
-        mVector temp(3);
-        temp = .5 * (LFRightFlux(u, index, dt) + LWRightFlux(u, index, dt));
-        return temp;
-    }
-    mVector FORCELeftFlux(Profiles& u, int index, double dt){
-        mVector temp(3);
-        temp = .5 * (LFLeftFlux(u, index, dt) + LWLeftFlux(u, index, dt));
-        return temp;
-    }
-    void FORCEComputeForward(Profiles& uPre, Profiles& uPost, double dt){
-        for (int i = 1; i <= nCells; i++) {
-            uPost[i] = uPre[i] - dt / xStep * (FORCERightFlux(uPre, i, dt) - FORCELeftFlux(uPre, i, dt));
-        }
-    }
-    double FORCEComputeTimeStep(Profiles& profile, double atTime){
-        return LFComputeTimeStep(profile, atTime);
-    }
-    void FORCESolve(Profiles& res){
-        ComputeSpatialStep();
-        Profiles uPre(nCells);
-        Profiles uPost(nCells);
-        InitiateValues(uPost);
-        double tNow = 0;
-        while (startTime + tNow < finalTIme) {
-            uPre = uPost;
-            double dt = FORCEComputeTimeStep(uPre, tNow);
-            FORCEComputeForward(uPre, uPost, dt);
-            tNow += dt;
-        }
-        GetOutput(uPost, res);
-        std::cout << "FORCE Finished!" <<endl;
-    }
-
-    
+//    mVector FORCERightFlux(Profiles& u, int index, double dt){
+//        mVector temp(3);
+//        temp = .5 * (LFRightFlux(u, index, dt) + LWRightFlux(u, index, dt));
+//        return temp;
+//    }
+//    mVector FORCELeftFlux(Profiles& u, int index, double dt){
+//        mVector temp(3);
+//        temp = .5 * (LFLeftFlux(u, index, dt) + LWLeftFlux(u, index, dt));
+//        return temp;
+//    }
+//    void FORCEComputeForward(Profiles& uPre, Profiles& uPost, double dt){
+//        for (int i = 1; i <= nCells; i++) {
+//            uPost[i] = uPre[i] - dt / xStep * (FORCERightFlux(uPre, i, dt) - FORCELeftFlux(uPre, i, dt));
+//        }
+//    }
+//    void FORCESolve(Profiles& res){
+//        ComputeSpatialStep();
+//        Profiles uPre(nCells);
+//        Profiles uPost(nCells);
+//        InitiateValues(uPost);
+//        double tNow = 0;
+//        while (startTime + tNow < finalTIme) {
+//            uPre = uPost;
+//            double dt = ComputeTimeStep(uPre, tNow);
+//            FORCEComputeForward(uPre, uPost, dt);
+//            tNow += dt;
+//        }
+//        GetOutput(uPost, res);
+//        std::cout << "FORCE Finished!" <<endl;
+//    }
     void GetOutput(Profiles& uPost, Profiles& res){
         for (int i = 1; i <= nCells; i++) {
             res.u1(i) = GetDensity(uPost, i);
             res.u2(i) = GetVelocity(uPost, i);
             res.u3(i) = GetPressure(uPost, i);
+            }
         }
-    }
-    
-};
+    };
 
 
 
